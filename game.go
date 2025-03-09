@@ -16,6 +16,21 @@ const (
 	West
 )
 
+func (p PlayerName) String() string {
+	switch p {
+	case North:
+		return "N"
+	case East:
+		return "E"
+	case South:
+		return "S"
+	case West:
+		return "W"
+	default:
+		return "?"
+	}
+}
+
 type Suit int
 
 const (
@@ -99,7 +114,8 @@ type Card struct {
 type Hand []Card
 
 func (h Hand) String() string {
-	s := ""
+	s := fmt.Sprintf(" HCP %d\n", h.Points())
+	s += fmt.Sprintf(" AltPts %.1f\n", h.AlternatePoints())
 	// Sort into suits
 	sorted := make([][]Card, 4)
 	for _, card := range h {
@@ -110,9 +126,66 @@ func (h Hand) String() string {
 		sort.Slice(sorted[suit], func(i, j int) bool {
 			return sorted[suit][i].value < sorted[suit][j].value
 		})
-		s += fmt.Sprintf("%s: %v", Suit(suit), sorted[suit])
+		s += fmt.Sprintf(" %s: ", Suit(suit))
+		for _, card := range sorted[suit] {
+			s += fmt.Sprintf(" %s", card.value)
+		}
+		s += "\n"
 	}
 	return s
+}
+
+func (h Hand) Points() int {
+	points := 0
+	for _, card := range h {
+		switch card.value {
+		case Ace:
+			points += 4
+		case King:
+			points += 3
+		case Queen:
+			points += 2
+		case Jack:
+			points += 1
+		}
+	}
+	return points
+}
+
+func (h Hand) AlternatePoints() float32 {
+	alternatePoints := float32(h.Points())
+	// AK = 2
+	// A = +1
+	// K = +0.5
+	suitPoints := make([]float32, 4)
+	countBySuit := make([]int, 4)
+	for _, card := range h {
+		countBySuit[card.suit] += 1
+		switch card.value {
+		case Ace:
+			if suitPoints[card.suit] != 0 {
+				suitPoints[card.suit] = 2
+				continue
+			}
+			suitPoints[card.suit] += 1
+		case King:
+			if suitPoints[card.suit] != 0 {
+				suitPoints[card.suit] = 2
+				continue
+			}
+			suitPoints[card.suit] += 0.5
+		}
+	}
+	for _, suitPoint := range suitPoints {
+		alternatePoints += suitPoint
+	}
+
+	// + longest two suits
+	sort.Slice(countBySuit, func(i, j int) bool {
+		return countBySuit[i] > countBySuit[j]
+	})
+	alternatePoints = alternatePoints + float32(countBySuit[0]) + float32(countBySuit[1])
+	return alternatePoints
 }
 
 type Bridge struct {
@@ -121,6 +194,14 @@ type Bridge struct {
 
 	nsTricksTaken int
 	esTricksTaken int
+}
+
+func (b *Bridge) String() string {
+	s := ""
+	for player := North; player <= West; player++ {
+		s += fmt.Sprintf("%s:\n%v\n", PlayerName(player), b.hands[player])
+	}
+	return s
 }
 
 func New() *Bridge {
