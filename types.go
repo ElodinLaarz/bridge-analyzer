@@ -139,6 +139,8 @@ type Bridge struct {
 
 	nsTricksTaken int
 	ewTricksTaken int
+
+	contractSuit *Suit
 }
 
 func (b *Bridge) String() string {

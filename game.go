@@ -107,3 +107,33 @@ func (b *Bridge) Reset() {
 	b.nsTricksTaken = 0
 	b.ewTricksTaken = 0
 }
+
+// PerfectPlay determines the optimal play for both sides to get the highest points
+// assuming the initial lead is the startingPlayer and the trump suit is trump.
+func (b *Bridge) PerfectPlay(startingPlayer PlayerName, trump *Suit) {
+	b.contractSuit = trump // nil == no trump
+	// TODO: Implement perfect play
+}
+
+func (b *Bridge) Trick(cardsPlayed map[PlayerName]Card, lead PlayerName) PlayerName {
+	suit := cardsPlayed[lead].suit
+	if b.contractSuit != nil {
+		for _, card := range cardsPlayed {
+			if card.suit == *b.contractSuit {
+				suit = *b.contractSuit
+				break
+			}
+		}
+	}
+	currentWinningVal := Value(-1)
+	currentWinningPlayer := lead
+	for player := North; player <= West; player++ {
+		if cardsPlayed[player].suit == suit {
+			if cardsPlayed[player].value > currentWinningVal {
+				currentWinningVal = cardsPlayed[player].value
+				currentWinningPlayer = player
+			}
+		}
+	}
+	return currentWinningPlayer
+}

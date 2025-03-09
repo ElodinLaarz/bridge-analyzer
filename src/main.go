@@ -7,8 +7,12 @@ import (
 )
 
 func main() {
-	bridgeGame := game.New()
 	fmt.Println("Welcome to Bridge Analyzer!")
 
-	fmt.Print(bridgeGame)
+	bridgeGame := game.New()
+	for i := 0; i < 2; i++ {
+		fmt.Println("\n\nDealing a new game...")
+		bridgeGame.Deal()
+		fmt.Print(bridgeGame)
+	}
 }
